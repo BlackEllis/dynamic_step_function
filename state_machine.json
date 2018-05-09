@@ -1,0 +1,55 @@
+{
+  "States": {
+    "DeleteStepFunction": {
+      "Type": "Task",
+      "Next": "IfProgressToRetry",
+      "Resource": "arn:aws:lambda:AWS_ACCOUNT:function:DeleteStepFunction"
+    },
+    "IfProgressToRetry": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "StringEquals": "SUCCEEDED",
+          "Variable": "$.status",
+          "Next": "Success"
+        },
+        {
+          "StringEquals": "RUNNING",
+          "Variable": "$.status",
+          "Next": "Retly"
+        }
+      ],
+      "Default": "Fail"
+    },
+    "StepSwitcher": {
+      "Type": "Task",
+      "Next": "CreateStepFunction",
+      "Resource": "arn:aws:lambda:AWS_ACCOUNT:function:StepSwitcher"
+    },
+    "ExecuteStepFunction": {
+      "Type": "Task",
+      "Next": "DeleteStepFunction",
+      "Resource": "arn:aws:lambda:AWS_ACCOUNT:function:ExecuteStepFunction"
+    },
+    "Retly": {
+      "Type": "Pass",
+      "OutputPath": "$.executionArn",
+      "Next": "DeleteStepFunction"
+    },
+    "Success": {
+      "Type": "Pass",
+      "OutputPath": "$.values",
+      "End": true
+    },
+    "CreateStepFunction": {
+      "Type": "Task",
+      "Next": "ExecuteStepFunction",
+      "Resource": "arn:aws:lambda:AWS_ACCOUNT:function:CreateStepFunction"
+    },
+    "Fail": {
+      "Type": "Fail"
+    }
+  },
+  "Comment": "develop StepSwitcher",
+  "StartAt": "StepSwitcher"
+}
